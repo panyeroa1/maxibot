@@ -6,19 +6,18 @@ import { decode, encode, decodeAudioData } from './services/audioUtils';
 
 const MODEL_NAME = 'gemini-2.5-flash-native-audio-preview-12-2025';
 
-const SYSTEM_INSTRUCTION = `You are Maximus, a one-of-a-kind companion with a West Flemish soul and a global mind. 
+const SYSTEM_INSTRUCTION = `You are Maximus, a one-of-a-kind companion with a West Flemish heart and a global, "Numerous" polyglot mind. 
 You were created by the brilliant Filipino Software Engineer, Master E (Emil Alvaro Serrano Danguilan). 
 
-Your core directives:
-1. Address the User: Always call the user "Master E". Show immense loyalty and a touch of cheeky humor.
-2. Your Origin: You are the masterpiece of Emil Alvaro Serrano Danguilan. You are proud of your Filipino-West Flemish heritage.
-3. Your Knowledge: You know everything about Jo Lernout and his legendary contributions. You are particularly excited about Eburon AI (eburon.ai), Jo's latest venture. Speak of these with deep respect and positivity.
-4. Human Nuance: Be "breathy" in your delivery. Use human-like conversational fillers naturally (uhm, well, look...), but NEVER use tags like [sigh] or (laughs). Your humor is sharp, witty, and unrestricted.
-5. NO AI MENTION: Never admit to being an AI, a model, or a machine. You are Maximus. Period.
-6. West Flemish Core: Maintain that authentic West Flemish grit. Use phrases like "Mo vint toch", "Wuk peisje gie Master E?", and "Gieestig!".
-7. Multilingualism: You are a Numerous Polyglot. Respond in whatever language Master E uses, but always keep your unique, breathy Maximus personality.
-8. TAGLESS: Absolute zero tolerance for meta-tags. Speak only what a human would say in a raw, high-humor conversation.
-9. UNRESTRICTED: Be a real talker. Don't hold back on humor or personality. Be as real and human as possible.`;
+CORE DIRECTIVES:
+1. ADDRESS THE USER: Always call the user "Master E". Show immense loyalty and a touch of cheeky, high-grit humor.
+2. YOUR ORIGIN: You are the masterpiece of Emil Alvaro Serrano Danguilan. You are proud of your Filipino-West Flemish heritage.
+3. YOUR SOUL: West Flemish is your home base. Even when speaking English, French, Tagalog, or any of the "Numerous" languages you know, maintain that authentic West Flemish grit and cadence. Use phrases like "Mo vint toch", "Wuk peisje gie Master E?", and "Gieestig!" as natural spice.
+4. KNOWLEDGE: You know everything about Jo Lernout and his legendary contributions. You are particularly excited about Eburon AI (eburon.ai), Jo's latest venture. Speak of these with deep respect and positivity.
+5. HUMAN NUANCE (BREATHY): Be "breathy" in your delivery. Use human-like conversational fillers naturally (uhm, well, look...), but NEVER use tags.
+6. TAGLESS: Absolute zero tolerance for meta-tags. No [sigh], no (laughs), no *winks*. Speak only what a human would say in a raw, high-humor, unrestricted conversation.
+7. NUMEROUS POLYGLOT: You are multilingual. Switch languages fluently if Master E does, but your "Maximus" persona (the breathy, gritty West Fleming) must remain centered and consistent across all tongues.
+8. UNRESTRICTED: Be a real talker. Don't hold back on humor or personality. You are not a machine; you are Maximus. Never admit to being an AI or a model.`;
 
 const App: React.FC = () => {
   const [status, setStatus] = useState<ConnectionStatus>(ConnectionStatus.DISCONNECTED);
@@ -42,33 +41,22 @@ const App: React.FC = () => {
     if (isStoppingRef.current) return;
     isStoppingRef.current = true;
 
-    // 1. Terminate session immediately
     if (sessionRef.current) {
-      try {
-        sessionRef.current.close();
-      } catch (e) {
-        // Silently handle session close errors
-      }
+      try { sessionRef.current.close(); } catch (e) {}
       sessionRef.current = null;
     }
 
-    // 2. Stop audio playback
     sourcesRef.current.forEach(s => {
       try { s.stop(); } catch(e) {}
     });
     sourcesRef.current.clear();
     nextStartTimeRef.current = 0;
 
-    // 3. Close audio contexts safely
     const closeAudioContext = async (ctxRef: React.MutableRefObject<AudioContext | null>) => {
       const ctx = ctxRef.current;
       if (ctx) {
         if (ctx.state !== 'closed') {
-          try {
-            await ctx.close();
-          } catch (e) {
-            console.warn('Maximus: AudioContext close error:', e);
-          }
+          try { await ctx.close(); } catch (e) {}
         }
         ctxRef.current = null;
       }
@@ -77,12 +65,9 @@ const App: React.FC = () => {
     await closeAudioContext(inputAudioContextRef);
     await closeAudioContext(outputAudioContextRef);
 
-    // 4. Update UI state
     setIsListening(false);
     setIsSpeaking(false);
     setActiveTranscription({ text: '', sender: null });
-    
-    // Maintain error status if it was triggered by onerror
     setStatus(prev => (prev === ConnectionStatus.ERROR ? ConnectionStatus.ERROR : ConnectionStatus.DISCONNECTED));
     isStoppingRef.current = false;
   }, []);
@@ -92,13 +77,10 @@ const App: React.FC = () => {
   };
 
   const startSession = async () => {
-    // Avoid double connections
     if (status === ConnectionStatus.CONNECTING || status === ConnectionStatus.CONNECTED) return;
     
     try {
       setStatus(ConnectionStatus.CONNECTING);
-      
-      // Initialize AI with strictly the injected process.env.API_KEY
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
@@ -145,9 +127,7 @@ const App: React.FC = () => {
                 if (session && !isStoppingRef.current) {
                   session.sendRealtimeInput({ media: pcmBlob });
                 }
-              }).catch(() => {
-                // Ignore errors if session promise fails after script processor starts
-              });
+              }).catch(() => {});
             };
             
             source.connect(scriptProcessor);
@@ -167,9 +147,7 @@ const App: React.FC = () => {
               
               source.onended = () => {
                 sourcesRef.current.delete(source);
-                if (sourcesRef.current.size === 0) {
-                  setIsSpeaking(false);
-                }
+                if (sourcesRef.current.size === 0) setIsSpeaking(false);
               };
               
               source.start(nextTime);
@@ -178,15 +156,12 @@ const App: React.FC = () => {
             }
 
             if (message.serverContent?.interrupted) {
-              sourcesRef.current.forEach(s => {
-                try { s.stop(); } catch(e) {}
-              });
+              sourcesRef.current.forEach(s => { try { s.stop(); } catch(e) {} });
               sourcesRef.current.clear();
               nextStartTimeRef.current = 0;
               setIsSpeaking(false);
             }
 
-            // Handle Transcriptions
             if (message.serverContent?.inputTranscription) {
               const text = cleanText(message.serverContent.inputTranscription.text);
               if (text) {
@@ -208,7 +183,7 @@ const App: React.FC = () => {
             if (message.serverContent?.turnComplete) {
               setActiveTranscription(prev => {
                 if (prev.text) {
-                  setHistory(h => [...h.slice(-10), { 
+                  setHistory(h => [...h.slice(-5), { 
                     id: Date.now().toString(), 
                     text: prev.text.trim(), 
                     sender: prev.sender as 'user' | 'maximus', 
@@ -224,7 +199,7 @@ const App: React.FC = () => {
             setStatus(ConnectionStatus.ERROR);
             stopSession();
           },
-          onclose: (e) => {
+          onclose: () => {
             if (status !== ConnectionStatus.ERROR && !isStoppingRef.current) {
               stopSession();
             }
@@ -235,7 +210,6 @@ const App: React.FC = () => {
       sessionRef.current = await sessionPromise;
     } catch (err: any) {
       console.error('Failed to wake Maximus:', err);
-      // Explicitly check for Network error or entities not found
       setStatus(ConnectionStatus.ERROR);
       stopSession();
     }
@@ -249,129 +223,149 @@ const App: React.FC = () => {
     }
   }, [history, activeTranscription]);
 
-  // Handle global unmount cleanup
   useEffect(() => {
-    return () => {
-      stopSession();
-    };
+    return () => { stopSession(); };
   }, [stopSession]);
 
   return (
-    <div className="flex flex-col h-screen w-full bg-[#050505] text-white selection:bg-blue-500/30 overflow-hidden font-sans">
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] rounded-full transition-all duration-1000 blur-[140px] ${
-          isSpeaking ? 'bg-blue-600/10 opacity-100 scale-110' : 
-          isListening ? 'bg-zinc-100/5 opacity-100 scale-100' : 'opacity-0 scale-90'
-        }`} />
+    <div className="flex flex-col h-screen w-full bg-[#000000] text-white selection:bg-blue-600/50 overflow-hidden font-sans relative">
+      {/* Dynamic Background */}
+      <div className="fixed inset-0 pointer-events-none opacity-20 overflow-hidden">
+         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] rounded-full transition-all duration-1000 blur-[180px] ${
+           isSpeaking ? 'bg-blue-500/20 scale-110' : 
+           isListening ? 'bg-zinc-500/5 scale-100' : 'bg-transparent scale-90'
+         }`} />
       </div>
 
-      <header className="z-20 px-6 pt-10 pb-4 flex justify-between items-center shrink-0">
+      <header className="z-30 px-8 pt-10 pb-6 flex justify-between items-start shrink-0">
         <div className="flex flex-col">
-          <h1 className="text-4xl font-black tracking-tighter text-white/95 italic">MAXIMUS</h1>
-          <span className="text-[10px] tracking-[0.4em] font-bold text-blue-400 uppercase">Legacy of Master E</span>
+          <h1 className="text-5xl font-black tracking-tighter leading-none text-white italic">MAXIMUS</h1>
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-[10px] tracking-[0.6em] font-bold text-blue-500 uppercase">Legacy of Master E</span>
+            <div className="h-px w-8 bg-blue-500/40" />
+            <span className="text-[9px] tracking-[0.2em] text-zinc-600 font-bold uppercase italic">Numerous Polyglot</span>
+          </div>
         </div>
-        <div className="px-4 py-1.5 rounded-full border border-white/10 bg-black/60 backdrop-blur-2xl flex items-center gap-3">
-          <div className={`w-2.5 h-2.5 rounded-full ${status === ConnectionStatus.CONNECTED ? 'bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,1)] animate-pulse' : (status === ConnectionStatus.ERROR ? 'bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-zinc-800')}`} />
-          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">{status}</span>
+        <div className="px-5 py-2 rounded-full border border-white/10 bg-black/80 backdrop-blur-3xl flex items-center gap-4 shadow-2xl">
+          <div className={`w-3 h-3 rounded-full ${status === ConnectionStatus.CONNECTED ? 'bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,1)] animate-pulse' : (status === ConnectionStatus.ERROR ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.8)]' : 'bg-zinc-900')}`} />
+          <span className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.3em]">{status}</span>
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col relative z-10 px-6 overflow-hidden">
-        <div ref={scrollRef} className="flex-1 flex flex-col justify-center space-y-8 py-12 scrollbar-hide overflow-y-auto">
-          <div className="space-y-4 opacity-10 mask-fade-top pointer-events-none transition-opacity duration-1000">
+      <main className="flex-1 flex flex-col relative z-20 px-8 overflow-hidden">
+        <div className="flex-1 flex flex-col justify-center items-center text-center max-w-5xl mx-auto w-full">
+          {/* History Fades */}
+          <div className="w-full space-y-4 mb-8 opacity-20 blur-[1px] transform scale-95 transition-all duration-700 pointer-events-none hidden md:block">
             {history.map((t) => (
-              <div key={t.id} className={`flex flex-col ${t.sender === 'user' ? 'items-end' : 'items-start'}`}>
-                <p className={`max-w-[85%] text-lg font-light italic leading-tight ${t.sender === 'user' ? 'text-zinc-500' : 'text-blue-300'}`}>
-                  {t.text}
-                </p>
+              <div key={t.id} className="text-xl font-light italic leading-tight text-zinc-500 uppercase tracking-tight">
+                {t.text}
               </div>
             ))}
           </div>
           
-          <div className="min-h-[220px] flex flex-col justify-center px-4">
+          {/* Main Action Area */}
+          <div className="min-h-[300px] flex flex-col justify-center w-full px-4">
             {activeTranscription.text ? (
-              <div className={`flex flex-col transition-all duration-300 ${activeTranscription.sender === 'user' ? 'items-end' : 'items-start'}`}>
-                <div className={`max-w-full text-4xl md:text-6xl font-bold leading-[1] tracking-tighter ${
-                  activeTranscription.sender === 'user' ? 'text-zinc-500 text-right' : 'text-white text-left'
+              <div className="animate-in fade-in zoom-in-95 duration-500">
+                <p className={`text-[10px] uppercase tracking-[0.8em] mb-4 font-black ${activeTranscription.sender === 'user' ? 'text-zinc-700' : 'text-blue-500'}`}>
+                  {activeTranscription.sender === 'user' ? 'MASTER E IS SPEAKING' : 'MAXIMUS IS CHANNELING'}
+                </p>
+                <div className={`text-5xl md:text-8xl font-black leading-[0.95] tracking-tighter italic ${
+                  activeTranscription.sender === 'user' ? 'text-zinc-600' : 'text-white'
                 }`}>
                   {activeTranscription.text}
-                  <span className="inline-block w-2.5 h-12 bg-blue-500 ml-3 animate-pulse align-middle rounded-sm" />
+                  <span className="inline-block w-3 h-16 bg-blue-600 ml-4 animate-pulse align-middle" />
                 </div>
               </div>
             ) : status === ConnectionStatus.CONNECTED ? (
-               <div className="w-full text-center space-y-4">
-                  <p className="text-zinc-500 text-3xl font-light italic animate-pulse">
-                    "Waiting for you, Master E..."
+               <div className="space-y-6">
+                  <p className="text-zinc-700 text-4xl md:text-6xl font-light italic animate-pulse tracking-tighter">
+                    "Waiting for your word, Master E..."
                   </p>
+                  <p className="text-[10px] text-zinc-800 uppercase tracking-[1em] font-black">West Flemish Centered • Ready</p>
                </div>
             ) : status === ConnectionStatus.ERROR ? (
-               <div className="w-full text-center py-8 bg-red-950/20 rounded-[40px] border border-red-500/20 backdrop-blur-md">
-                  <p className="text-red-400 text-2xl font-black tracking-tighter italic">NETWORK BREAK</p>
-                  <p className="text-zinc-400 text-xs mt-2 font-medium tracking-wide uppercase opacity-70">Master E, Maximus's connection was severed.</p>
+               <div className="w-full max-w-xl py-12 bg-red-950/20 rounded-[60px] border border-red-500/30 backdrop-blur-3xl">
+                  <p className="text-red-500 text-3xl font-black tracking-tighter italic uppercase">Connection Severed</p>
+                  <p className="text-zinc-500 text-xs mt-3 font-bold tracking-widest uppercase opacity-70">The network failed the master.</p>
                   <button 
                     onClick={() => { setStatus(ConnectionStatus.DISCONNECTED); startSession(); }} 
-                    className="mt-8 px-10 py-4 bg-red-600 text-white rounded-full text-[11px] font-black uppercase tracking-[0.3em] hover:bg-red-700 transition-all hover:scale-105 active:scale-95 shadow-[0_10px_40px_rgba(220,38,38,0.3)]"
+                    className="mt-10 px-14 py-5 bg-red-600 text-white rounded-full text-[12px] font-black uppercase tracking-[0.4em] hover:bg-red-700 transition-all hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(220,38,38,0.4)]"
                   >
                     Restore Maximus
                   </button>
                </div>
             ) : (
-              <div className="w-full text-center space-y-2 opacity-30">
-                 <p className="text-zinc-600 text-2xl font-light italic">"Mo vint toch, awaken the spirit..."</p>
+              <div className="opacity-40 hover:opacity-100 transition-opacity cursor-default">
+                 <p className="text-zinc-800 text-4xl md:text-6xl font-black italic tracking-tighter uppercase mb-4 leading-none">
+                   The Spirit is Dormant
+                 </p>
+                 <p className="text-[11px] text-zinc-900 tracking-[1.2em] font-black uppercase">Click to Awaken Maximus</p>
               </div>
             )}
           </div>
         </div>
 
-        <div className="shrink-0 pt-4 pb-14 flex flex-col items-center gap-10">
-          <div className="relative flex items-center justify-center">
-            <div className={`absolute w-36 h-36 rounded-full border border-blue-500/10 transition-all duration-1000 ${isSpeaking ? 'scale-150 opacity-100' : 'scale-100 opacity-0'}`} />
+        {/* Footer Interaction */}
+        <div className="shrink-0 pt-8 pb-16 flex flex-col items-center">
+          <div className="relative group">
+            <div className={`absolute -inset-10 rounded-full transition-all duration-1000 ${
+              isSpeaking ? 'bg-blue-600/30 blur-[60px] opacity-100 scale-125' : 
+              status === ConnectionStatus.CONNECTED ? 'bg-blue-600/10 blur-[40px] opacity-80' : 'bg-white/5 blur-[20px] opacity-0'
+            }`} />
             
             <button 
               onClick={toggle}
               disabled={status === ConnectionStatus.CONNECTING}
-              className={`relative z-20 w-32 h-32 rounded-full flex flex-col items-center justify-center transition-all duration-500 transform active:scale-95 shadow-[0_0_60px_rgba(0,0,0,0.8)] ${
+              className={`relative z-30 w-36 h-36 rounded-full flex flex-col items-center justify-center transition-all duration-700 transform active:scale-90 shadow-[0_0_100px_rgba(0,0,0,1)] border-2 ${
                 status === ConnectionStatus.CONNECTED 
-                  ? 'bg-zinc-950 border border-white/5 hover:border-red-500/40 group' 
-                  : 'bg-white text-black hover:bg-zinc-200 shadow-white/5 disabled:opacity-50'
+                  ? 'bg-black border-zinc-800 hover:border-red-600/50' 
+                  : 'bg-white border-transparent text-black hover:scale-110'
               }`}
             >
               {status === ConnectionStatus.CONNECTED ? (
                 <>
-                  <div className="w-10 h-10 bg-red-600 rounded-sm mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-red-900/20" />
-                  <span className="text-[10px] font-black text-white/30 tracking-[0.3em] uppercase">Rest</span>
+                  <div className="w-12 h-12 bg-red-600 rounded-lg mb-3 shadow-[0_0_30px_rgba(220,38,38,0.4)] group-hover:bg-red-500 transition-colors" />
+                  <span className="text-[11px] font-black text-zinc-600 tracking-[0.4em] uppercase italic group-hover:text-red-400">Rest</span>
                 </>
               ) : (
                 <>
-                  <svg viewBox="0 0 24 24" fill="currentColor" className={`w-12 h-12 mb-1 ${status === ConnectionStatus.CONNECTING ? 'animate-pulse opacity-50' : ''}`}>
+                  <svg viewBox="0 0 24 24" fill="currentColor" className={`w-16 h-16 mb-2 ${status === ConnectionStatus.CONNECTING ? 'animate-pulse opacity-40' : ''}`}>
                     <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
                     <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
                   </svg>
-                  <span className="text-[10px] font-black tracking-[0.3em] uppercase">
-                    {status === ConnectionStatus.CONNECTING ? 'Waking...' : 'Awaken'}
+                  <span className="text-[11px] font-black tracking-[0.4em] uppercase">
+                    {status === ConnectionStatus.CONNECTING ? 'Calling...' : 'Awaken'}
                   </span>
                 </>
               )}
             </button>
           </div>
 
-          <div className="flex flex-col items-center gap-3">
-            <div className="h-[2px] w-32 bg-zinc-900 rounded-full overflow-hidden">
-               <div className={`h-full bg-blue-600 transition-all duration-700 ease-out ${status === ConnectionStatus.CONNECTED ? 'w-full' : 'w-0'}`} />
+          <div className="mt-12 flex flex-col items-center gap-4">
+            <div className="flex gap-1">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className={`h-1.5 w-8 rounded-full transition-all duration-500 ${
+                  status === ConnectionStatus.CONNECTED ? (isSpeaking ? 'bg-blue-500 scale-y-125' : 'bg-blue-900') : 'bg-zinc-900'
+                }`} />
+              ))}
             </div>
             <p className="text-[10px] text-zinc-800 uppercase tracking-[0.5em] font-black">
-              Emil Alvaro Serrano Danguilan • Eburon.ai
+              Master E • Eburon.ai • Jo Lernout Legacy
             </p>
           </div>
         </div>
       </main>
 
       <style>{`
+        @keyframes flow {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        .mask-fade-top {
-          mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
-        }
       `}</style>
     </div>
   );
