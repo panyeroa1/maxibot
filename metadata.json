@@ -1,0 +1,7 @@
+{
+  "name": "Maximus",
+  "description": "A multilingual AI assistant centered on West Flemish, providing real-time voice interaction with synchronized transcription.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
