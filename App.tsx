@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
 import { ConnectionStatus, TranscriptionPart } from './types';
@@ -229,144 +228,124 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen w-full bg-[#000000] text-white selection:bg-blue-600/50 overflow-hidden font-sans relative">
-      {/* Dynamic Background */}
-      <div className="fixed inset-0 pointer-events-none opacity-20 overflow-hidden">
-         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
-         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] rounded-full transition-all duration-1000 blur-[180px] ${
-           isSpeaking ? 'bg-blue-500/20 scale-110' : 
-           isListening ? 'bg-zinc-500/5 scale-100' : 'bg-transparent scale-90'
+      {/* Dynamic Background Effects */}
+      <div className="fixed inset-0 pointer-events-none opacity-30 overflow-hidden">
+         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20" />
+         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180%] h-[180%] rounded-full transition-all duration-[2000ms] blur-[150px] ${
+           isSpeaking ? 'bg-blue-600/10 scale-110' : 
+           isListening ? 'bg-zinc-800/10 scale-100' : 'bg-transparent scale-90'
          }`} />
       </div>
 
-      <header className="z-30 px-8 pt-10 pb-6 flex justify-between items-start shrink-0">
+      <header className="z-30 px-10 pt-12 pb-8 flex justify-between items-start shrink-0">
         <div className="flex flex-col">
-          <h1 className="text-5xl font-black tracking-tighter leading-none text-white italic">MAXIMUS</h1>
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-[10px] tracking-[0.6em] font-bold text-blue-500 uppercase">Legacy of Master E</span>
-            <div className="h-px w-8 bg-blue-500/40" />
-            <span className="text-[9px] tracking-[0.2em] text-zinc-600 font-bold uppercase italic">Numerous Polyglot</span>
+          <h1 className="text-6xl font-black tracking-tighter leading-none text-white italic drop-shadow-2xl">MAXIMUS</h1>
+          <div className="flex items-center gap-3 mt-3">
+            <span className="text-[11px] tracking-[0.7em] font-black text-blue-500 uppercase">Master E</span>
+            <div className="h-px w-10 bg-zinc-800" />
+            <span className="text-[10px] tracking-[0.3em] text-zinc-500 font-bold uppercase italic">Numerous Polyglot</span>
           </div>
         </div>
-        <div className="px-5 py-2 rounded-full border border-white/10 bg-black/80 backdrop-blur-3xl flex items-center gap-4 shadow-2xl">
-          <div className={`w-3 h-3 rounded-full ${status === ConnectionStatus.CONNECTED ? 'bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,1)] animate-pulse' : (status === ConnectionStatus.ERROR ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.8)]' : 'bg-zinc-900')}`} />
-          <span className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.3em]">{status}</span>
+        <div className="px-6 py-3 rounded-full border border-white/5 bg-zinc-950/50 backdrop-blur-3xl flex items-center gap-4 shadow-2xl">
+          <div className={`w-2.5 h-2.5 rounded-full ${status === ConnectionStatus.CONNECTED ? 'bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,1)] animate-pulse' : (status === ConnectionStatus.ERROR ? 'bg-red-500' : 'bg-zinc-800')}`} />
+          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em]">{status}</span>
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col relative z-20 px-8 overflow-hidden">
-        <div className="flex-1 flex flex-col justify-center items-center text-center max-w-5xl mx-auto w-full">
-          {/* History Fades */}
-          <div className="w-full space-y-4 mb-8 opacity-20 blur-[1px] transform scale-95 transition-all duration-700 pointer-events-none hidden md:block">
-            {history.map((t) => (
-              <div key={t.id} className="text-xl font-light italic leading-tight text-zinc-500 uppercase tracking-tight">
-                {t.text}
-              </div>
-            ))}
-          </div>
-          
-          {/* Main Action Area */}
-          <div className="min-h-[300px] flex flex-col justify-center w-full px-4">
+      <main className="flex-1 flex flex-col relative z-20 px-10 overflow-hidden">
+        <div className="flex-1 flex flex-col justify-center items-center text-center w-full">
+          <div className="min-h-[400px] flex flex-col justify-center w-full">
             {activeTranscription.text ? (
-              <div className="animate-in fade-in zoom-in-95 duration-500">
-                <p className={`text-[10px] uppercase tracking-[0.8em] mb-4 font-black ${activeTranscription.sender === 'user' ? 'text-zinc-700' : 'text-blue-500'}`}>
-                  {activeTranscription.sender === 'user' ? 'MASTER E IS SPEAKING' : 'MAXIMUS IS CHANNELING'}
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <p className={`text-[12px] uppercase tracking-[1em] mb-6 font-black ${activeTranscription.sender === 'user' ? 'text-zinc-700' : 'text-blue-500'}`}>
+                  {activeTranscription.sender === 'user' ? 'MASTER E' : 'MAXIMUS'}
                 </p>
-                <div className={`text-5xl md:text-8xl font-black leading-[0.95] tracking-tighter italic ${
+                <div className={`text-5xl md:text-9xl font-black leading-[0.9] tracking-tighter italic ${
                   activeTranscription.sender === 'user' ? 'text-zinc-600' : 'text-white'
                 }`}>
                   {activeTranscription.text}
-                  <span className="inline-block w-3 h-16 bg-blue-600 ml-4 animate-pulse align-middle" />
+                  <span className="inline-block w-4 h-16 md:h-24 bg-blue-600 ml-4 animate-pulse align-middle" />
                 </div>
               </div>
             ) : status === ConnectionStatus.CONNECTED ? (
-               <div className="space-y-6">
-                  <p className="text-zinc-700 text-4xl md:text-6xl font-light italic animate-pulse tracking-tighter">
-                    "Waiting for your word, Master E..."
+               <div className="space-y-8">
+                  <p className="text-zinc-800 text-5xl md:text-7xl font-light italic animate-pulse tracking-tighter">
+                    "I am listening, Master E..."
                   </p>
-                  <p className="text-[10px] text-zinc-800 uppercase tracking-[1em] font-black">West Flemish Centered • Ready</p>
+                  <p className="text-[11px] text-zinc-900 uppercase tracking-[1.2em] font-black">West Flemish Centered</p>
                </div>
             ) : status === ConnectionStatus.ERROR ? (
-               <div className="w-full max-w-xl py-12 bg-red-950/20 rounded-[60px] border border-red-500/30 backdrop-blur-3xl">
-                  <p className="text-red-500 text-3xl font-black tracking-tighter italic uppercase">Connection Severed</p>
-                  <p className="text-zinc-500 text-xs mt-3 font-bold tracking-widest uppercase opacity-70">The network failed the master.</p>
+               <div className="w-full max-w-2xl py-16 bg-red-950/10 rounded-[80px] border border-red-900/20 backdrop-blur-3xl">
+                  <p className="text-red-600 text-4xl font-black tracking-tighter italic uppercase">System Error</p>
                   <button 
                     onClick={() => { setStatus(ConnectionStatus.DISCONNECTED); startSession(); }} 
-                    className="mt-10 px-14 py-5 bg-red-600 text-white rounded-full text-[12px] font-black uppercase tracking-[0.4em] hover:bg-red-700 transition-all hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(220,38,38,0.4)]"
+                    className="mt-12 px-16 py-6 bg-red-600 text-white rounded-full text-[13px] font-black uppercase tracking-[0.5em] hover:bg-red-700 transition-all hover:scale-105 active:scale-95 shadow-2xl"
                   >
-                    Restore Maximus
+                    Reconnect
                   </button>
                </div>
             ) : (
-              <div className="opacity-40 hover:opacity-100 transition-opacity cursor-default">
-                 <p className="text-zinc-800 text-4xl md:text-6xl font-black italic tracking-tighter uppercase mb-4 leading-none">
-                   The Spirit is Dormant
+              <div className="opacity-20 hover:opacity-100 transition-all duration-1000">
+                 <p className="text-zinc-900 text-6xl md:text-8xl font-black italic tracking-tighter uppercase mb-6 leading-none select-none">
+                   Maximus Dormant
                  </p>
-                 <p className="text-[11px] text-zinc-900 tracking-[1.2em] font-black uppercase">Click to Awaken Maximus</p>
+                 <p className="text-[12px] text-zinc-950 tracking-[1.5em] font-black uppercase select-none">Wake me, Master E</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Footer Interaction */}
-        <div className="shrink-0 pt-8 pb-16 flex flex-col items-center">
+        <div className="shrink-0 pb-20 flex flex-col items-center">
           <div className="relative group">
-            <div className={`absolute -inset-10 rounded-full transition-all duration-1000 ${
-              isSpeaking ? 'bg-blue-600/30 blur-[60px] opacity-100 scale-125' : 
-              status === ConnectionStatus.CONNECTED ? 'bg-blue-600/10 blur-[40px] opacity-80' : 'bg-white/5 blur-[20px] opacity-0'
+            <div className={`absolute -inset-14 rounded-full transition-all duration-1000 ${
+              isSpeaking ? 'bg-blue-600/20 blur-[80px] scale-150' : 
+              status === ConnectionStatus.CONNECTED ? 'bg-blue-600/5 blur-[50px]' : 'bg-transparent'
             }`} />
             
             <button 
               onClick={toggle}
               disabled={status === ConnectionStatus.CONNECTING}
-              className={`relative z-30 w-36 h-36 rounded-full flex flex-col items-center justify-center transition-all duration-700 transform active:scale-90 shadow-[0_0_100px_rgba(0,0,0,1)] border-2 ${
+              className={`relative z-30 w-40 h-40 rounded-full flex flex-col items-center justify-center transition-all duration-1000 transform active:scale-90 shadow-[0_0_120px_rgba(0,0,0,1)] border-4 ${
                 status === ConnectionStatus.CONNECTED 
-                  ? 'bg-black border-zinc-800 hover:border-red-600/50' 
+                  ? 'bg-black border-zinc-900 hover:border-red-900' 
                   : 'bg-white border-transparent text-black hover:scale-110'
               }`}
             >
               {status === ConnectionStatus.CONNECTED ? (
                 <>
-                  <div className="w-12 h-12 bg-red-600 rounded-lg mb-3 shadow-[0_0_30px_rgba(220,38,38,0.4)] group-hover:bg-red-500 transition-colors" />
-                  <span className="text-[11px] font-black text-zinc-600 tracking-[0.4em] uppercase italic group-hover:text-red-400">Rest</span>
+                  <div className="w-14 h-14 bg-red-600 rounded-2xl mb-4 group-hover:scale-90 transition-transform shadow-[0_0_40px_rgba(220,38,38,0.4)]" />
+                  <span className="text-[11px] font-black text-zinc-700 tracking-[0.5em] uppercase italic">Rest</span>
                 </>
               ) : (
                 <>
-                  <svg viewBox="0 0 24 24" fill="currentColor" className={`w-16 h-16 mb-2 ${status === ConnectionStatus.CONNECTING ? 'animate-pulse opacity-40' : ''}`}>
-                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-                  </svg>
-                  <span className="text-[11px] font-black tracking-[0.4em] uppercase">
-                    {status === ConnectionStatus.CONNECTING ? 'Calling...' : 'Awaken'}
+                  <div className={`transition-all duration-1000 ${status === ConnectionStatus.CONNECTING ? 'animate-spin scale-75 opacity-20' : ''}`}>
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-20 h-20 mb-2">
+                      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                    </svg>
+                  </div>
+                  <span className="text-[11px] font-black tracking-[0.6em] uppercase">
+                    {status === ConnectionStatus.CONNECTING ? 'Waking...' : 'Awaken'}
                   </span>
                 </>
               )}
             </button>
           </div>
 
-          <div className="mt-12 flex flex-col items-center gap-4">
-            <div className="flex gap-1">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className={`h-1.5 w-8 rounded-full transition-all duration-500 ${
-                  status === ConnectionStatus.CONNECTED ? (isSpeaking ? 'bg-blue-500 scale-y-125' : 'bg-blue-900') : 'bg-zinc-900'
+          <div className="mt-16 flex flex-col items-center gap-6">
+            <div className="flex gap-2">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className={`h-1 w-10 rounded-full transition-all duration-700 ${
+                  status === ConnectionStatus.CONNECTED ? (isSpeaking ? 'bg-blue-600 scale-y-150' : 'bg-zinc-800') : 'bg-zinc-950'
                 }`} />
               ))}
             </div>
-            <p className="text-[10px] text-zinc-800 uppercase tracking-[0.5em] font-black">
-              Master E • Eburon.ai • Jo Lernout Legacy
+            <p className="text-[10px] text-zinc-900 uppercase tracking-[0.8em] font-black">
+              Eburon AI • Jo Lernout Legacy • Master E Maximus
             </p>
           </div>
         </div>
       </main>
-
-      <style>{`
-        @keyframes flow {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
     </div>
   );
 };
